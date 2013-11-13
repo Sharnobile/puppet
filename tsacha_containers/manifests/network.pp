@@ -49,7 +49,7 @@ class tsacha_containers::network {
 
    service { 'openvswitch-switch':
      ensure => running,
-     require => Exec["enbale-lsb-ovs"]
+     require => Exec["enable-lsb-ovs"]
    }
 
    # IP forward
