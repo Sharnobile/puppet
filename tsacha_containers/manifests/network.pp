@@ -2,7 +2,7 @@
 #
 # Prepare networking for LXC usage
 
-class tsacha::network {
+class tsacha_containers::network {
    Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
 
    # Containers will be attached on an OVS switch
