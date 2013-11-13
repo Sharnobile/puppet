@@ -93,7 +93,8 @@ class tsacha_containers::network {
    # External bridge
    exec { "create-bridge":
      command => "ovs-vsctl add-br br-ex",
-     unless => "ovs-vsctl br-exists br-ex"
+     unless => "ovs-vsctl br-exists br-ex",
+     require => Package['openvswitch-switch']
    }
 
    exec { "up-bridge":
@@ -140,7 +141,8 @@ class tsacha_containers::network {
    # Internal bridge
    exec { "create-bridge-int":
      command => "ovs-vsctl add-br br-int",
-     unless => "ovs-vsctl br-exists br-int"
+     unless => "ovs-vsctl br-exists br-int",
+     require => Package['openvswitch-switch']
    }
 
    exec { "up-bridge-int":
