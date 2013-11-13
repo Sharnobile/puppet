@@ -1,4 +1,4 @@
-puppet
+Puppet
 ======
 
-Servers deployment
+This repository contains all recipes in charge of deploying my servers.
