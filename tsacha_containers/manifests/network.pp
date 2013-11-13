@@ -162,7 +162,7 @@ class tsacha::network {
      mode    => 644,
      ensure  => present,
      content => template('tsacha_containers/network_conf.erb'),
-     require => [Exec["switch-bridge"],Exec["switch6-bridge"],Exec['addr-bridge-int']]
+     require => [Exec["switch-bridge"],Exec["switch6-bridge"],Exec['addr-bridge-int']],
      notify => Service['networking'],
    }
 }
