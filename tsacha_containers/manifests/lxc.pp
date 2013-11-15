@@ -43,6 +43,13 @@ class tsacha_containers::lxc {
      unless => "mount | grep cgroup",
    }
 
+   file { "/opt/libvirt/":
+     ensure => directory,
+     owner => root,
+     group => root,
+     mode => 775,
+   }
+
    file { "/tmp/libvirt.tar.xz":
      owner   => root,
      group   => root,
@@ -53,8 +60,9 @@ class tsacha_containers::lxc {
   
    exec { "deploy-libvirt":
      command => "tar -xvJf /tmp/libvirt.tar.xz",
-     cwd => "/opt",
-     unless => "stat /opt/libvirt/sbin/libvirtd"
+     cwd => "/opt/libvirt",
+     unless => "stat /opt/libvirt/sbin/libvirtd",
+     require => File["/opt/libvirt"]
    }
 
    file { "/etc/init.d/libvirt":
