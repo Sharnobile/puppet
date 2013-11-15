@@ -3,7 +3,7 @@
 # LibVirt+LXC installation
 
 class tsacha_containers::lxc {
-   Exec { path => [ "/opt/libvirt", "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
+   Exec { path => [ "/opt/libvirt/bin", "/opt/libvirt/sbin", "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
 
    apt::force { "lxc":
      release => "testing",
