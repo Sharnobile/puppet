@@ -10,19 +10,11 @@ class tsacha_containers::lxc {
      require => Apt::Source["testing"]
    }
 
-   package { 'pm-utils':
-     ensure => installed
-   }
+   $libvirt_dep = [ "libaudit0", "libavahi-client3", "libavahi-common3", "libcap-ng0", "libnetcf1", "libnl1", "libnuma1", "libparted0debian1", "libpcap0.8", "libpciaccess0", "libsanlock-client1", "pm-utils", "libdevmapper1.02.1", "ebtables" ]
 
-   package { 'libnl1':
-     ensure => installed
-   }
+   package { $libvirt_dep: ensure => "installed" } ->
 
-   package { 'libnuma1':
-     ensure => installed
-   }
-   
-   package { 'libdevmapper1.02.1':
+   package { "dnsmasq":
      ensure => installed
    }
 
@@ -52,10 +44,10 @@ class tsacha_containers::lxc {
    }
   
    package { "libvirt":
-     require => File["/tmp/libvirt_1.1.4_amd64.deb"],
+     require => [File["/tmp/libvirt_1.1.4_amd64.deb"],Package["dnsmasq"]],
      ensure => installed,
      source => "/tmp/libvirt_1.1.4_amd64.deb",
-     provider => dpkg
+     provider => dpkg,
    }
 
    file { "/etc/init.d/libvirt":
@@ -71,7 +63,8 @@ class tsacha_containers::lxc {
      group   => root,
      mode    => 644,
      ensure  => present,
-     content => template('tsacha_containers/libvirtd.conf.erb')
+     content => template('tsacha_containers/libvirtd.conf.erb'),
+     require => Package["libvirt"]
    }
 
    file { "/etc/libvirt/libvirt.conf":
@@ -79,7 +72,13 @@ class tsacha_containers::lxc {
      group   => root,
      mode    => 644,
      ensure  => present,
-     content => template('tsacha_containers/libvirt.conf.erb')
+     content => template('tsacha_containers/libvirt.conf.erb'),
+     require => Package["libvirt"]
+   }
+   
+   service { "dnsmasq":
+     ensure => stopped,
+     require => Package["dnsmasq"]
    }
 
    service { "libvirt":
@@ -87,7 +86,7 @@ class tsacha_containers::lxc {
      enable => true,
      hasstatus => true,
      hasrestart => true,
-     require => [File['/etc/init.d/libvirt'],File["/etc/libvirt/libvirtd.conf"],File["/etc/libvirt/libvirt.conf"],Package['libvirt'],Package['libnl1'],Package['libnuma1']]
+     require => [File['/etc/init.d/libvirt'],File["/etc/libvirt/libvirtd.conf"],File["/etc/libvirt/libvirt.conf"],Package['libvirt'],Package['libnl1'],Package['libnuma1'],Service['dnsmasq']]
    }
 
    exec { "virsh-net-destroy":
