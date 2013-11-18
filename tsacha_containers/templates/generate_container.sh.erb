@@ -57,10 +57,9 @@ netmask $netmask
 gateway $gateway
 
 auto eth1
-iface eth1 inet6 static
-address $ip6
-netmask $netmask6
-gateway $gateway6
+iface eth1 inet6 manual
+  up ip -6 a a $ip6/$netmask6 dev eth1
+  up ip -6 r a default via $gateway6 dev eth1
 EOF
 
 cat > rootfs/etc/resolv.conf <<EOF
