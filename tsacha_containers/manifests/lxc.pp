@@ -39,7 +39,7 @@ class tsacha_containers::lxc {
    }
 
    exec { "mount-cgroup":
-     command => 'mount -a',
+     command => 'bash /etc/rc.local',
      unless => "mount | grep cgroup",
    }
 
