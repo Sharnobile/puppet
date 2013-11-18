@@ -54,7 +54,7 @@ class tsacha_containers::lxc {
    package { "libvirt":
      require => File["/tmp/libvirt_1.1.4_amd64.deb"],
      ensure => installed,
-     source => "/tmp/libvirt.deb",
+     source => "/tmp/libvirt_1.1.4_amd64.deb",
      provider => dpkg
    }
 
