@@ -43,26 +43,19 @@ class tsacha_containers::lxc {
      unless => "mount | grep cgroup",
    }
 
-   file { "/opt/libvirt/":
-     ensure => directory,
-     owner => root,
-     group => root,
-     mode => 775,
-   }
-
-   file { "/tmp/libvirt.tar.xz":
+   file { "/tmp/libvirt_1.1.4_amd64.deb":
      owner   => root,
      group   => root,
      mode    => 600,
      ensure  => present,
-     source  => "puppet:///modules/tsacha_containers/libvirt.tar.xz"
+     source  => "puppet:///modules/tsacha_containers/libvirt_1.1.4_amd64.deb"
    }
   
-   exec { "deploy-libvirt":
-     command => "tar -xvJf /tmp/libvirt.tar.xz",
-     cwd => "/opt/libvirt",
-     unless => "stat /opt/libvirt/sbin/libvirtd",
-     require => File["/opt/libvirt"]
+   package { "libvirt":
+     require => File["/tmp/libvirt_1.1.4_amd64.deb"],
+     ensure => installed,
+     source => "/tmp/libvirt.deb",
+     provider => dpkg
    }
 
    file { "/etc/init.d/libvirt":
@@ -78,7 +71,7 @@ class tsacha_containers::lxc {
      enable => true,
      hasstatus => true,
      hasrestart => true,
-     require => [File['/etc/init.d/libvirt'],Exec['deploy-libvirt'],Package['libnl1'],Package['libnuma1']]
+     require => [File['/etc/init.d/libvirt'],Package['libvirt'],Package['libnl1'],Package['libnuma1']]
    }
 
    exec { "virsh-net-destroy":
