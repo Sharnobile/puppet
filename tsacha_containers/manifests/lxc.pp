@@ -10,7 +10,7 @@ class tsacha_containers::lxc {
      require => Apt::Source["testing"]
    }
 
-   $libvirt_dep = [ "libaudit0", "libavahi-client3", "libavahi-common3", "libcap-ng0", "libnetcf1", "libnl1", "libnuma1", "libparted0debian1", "libpcap0.8", "libpciaccess0", "libsanlock-client1", "pm-utils", "libdevmapper1.02.1", "ebtables" ]
+   $libvirt_dep = [ "libaudit0", "libavahi-client3", "libavahi-common3", "libcap-ng0", "libnetcf1", "libnl1", "libnuma1", "libparted0debian1", "libpcap0.8", "libpciaccess0", "libsanlock-client1", "pm-utils", "libdevmapper1.02.1", "libxenstore3.0", "libyajl2", "ebtables" ]
 
    package { $libvirt_dep: ensure => "installed" } ->
 
