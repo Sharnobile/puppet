@@ -66,6 +66,14 @@ class tsacha_containers::lxc {
      content => template('tsacha_containers/libvirt.initd')
    }
 
+   file { "/etc/libvirt/libvirtd.conf.erb":
+     owner   => root,
+     group   => root,
+     mode    => 644,
+     ensure  => present,
+     content => template('tsacha_containers/libvirtd.conf.erb')
+   }
+
    service { "libvirt":
      ensure => running,
      enable => true,
