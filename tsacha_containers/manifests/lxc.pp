@@ -66,7 +66,7 @@ class tsacha_containers::lxc {
      content => template('tsacha_containers/libvirt.initd')
    }
 
-   file { "/etc/libvirt/libvirtd.conf.erb":
+   file { "/etc/libvirt/libvirtd.conf":
      owner   => root,
      group   => root,
      mode    => 644,
@@ -74,12 +74,20 @@ class tsacha_containers::lxc {
      content => template('tsacha_containers/libvirtd.conf.erb')
    }
 
+   file { "/etc/libvirt/libvirt.conf":
+     owner   => root,
+     group   => root,
+     mode    => 644,
+     ensure  => present,
+     content => template('tsacha_containers/libvirt.conf.erb')
+   }
+
    service { "libvirt":
      ensure => running,
      enable => true,
      hasstatus => true,
      hasrestart => true,
-     require => [File['/etc/init.d/libvirt'],Package['libvirt'],Package['libnl1'],Package['libnuma1']]
+     require => [File['/etc/init.d/libvirt'],File["/etc/libvirt/libvirtd.conf"],File["/etc/libvirt/libvirt.conf"],Package['libvirt'],Package['libnl1'],Package['libnuma1']]
    }
 
    exec { "virsh-net-destroy":
