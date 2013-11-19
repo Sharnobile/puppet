@@ -137,13 +137,13 @@ class tsacha_containers::network {
 
    exec { "rm-addr-origin":
      command => "ip address delete $ip_address/$cidr dev eth0",
-     unless => "ip address show eth0 | grep $ip_address/$cidr",
+     onlyif => "ip address show eth0 | grep $ip_address/$cidr",
      require => Exec["switch-bridge"]
    }
 
    exec { "rm-addr6-origin":
      command => "ip -6 address delete $ip6_address/$cidr6 dev eth0",
-     unless => "ip -6 address show eth0 | grep $ip6_address/$cidr6",
+     onlyif => "ip -6 address show eth0 | grep $ip6_address/$cidr6",
      require => Exec["switch6-bridge"]
    }
 
