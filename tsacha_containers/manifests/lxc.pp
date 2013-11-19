@@ -18,10 +18,6 @@ class tsacha_containers::lxc {
      ensure => installed
    }
 
-   service { "dbus":
-     ensure => running
-   }
-
    file { "/etc/rc.local":
      owner   => root,
      group   => root,
