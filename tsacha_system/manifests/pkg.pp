@@ -5,7 +5,7 @@
 class tsacha_system::pkg {
    Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/" ] }
    
-   packgage { 'emacs23-nox':
+   package { 'emacs23-nox':
      ensure => installed
    }
 
