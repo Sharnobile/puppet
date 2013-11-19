@@ -76,17 +76,12 @@ class tsacha_containers::lxc {
      require => Package["libvirt"]
    }
    
-   service { "dnsmasq":
-     ensure => stopped,
-     require => Package["dnsmasq"]
-   }
-
    service { "libvirt":
      ensure => running,
      enable => true,
      hasstatus => true,
      hasrestart => true,
-     require => [File['/etc/init.d/libvirt'],File["/etc/libvirt/libvirtd.conf"],File["/etc/libvirt/libvirt.conf"],Package['libvirt'],Package['libnl1'],Package['libnuma1'],Service['dnsmasq']]
+     require => [File['/etc/init.d/libvirt'],File["/etc/libvirt/libvirtd.conf"],File["/etc/libvirt/libvirt.conf"],Package['libvirt'],Package['libnl1'],Package['libnuma1']]
    }
 
    exec { "virsh-net-destroy":
