@@ -1,0 +1,285 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'libvirt'
+require 'fileutils'
+require 'net/http'
+require 'etc'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: generate_container.rb [options]"
+
+  opts.on("--hostname [HOSTNAME]", "Hostname") do |h|
+    options[:hostname] = h
+  end
+
+  opts.on("--domain [DOMAIN]", "Domain") do |d|
+    options[:domain] = d
+  end
+
+  opts.on("--ip [IP]", "IP address") do |i|
+    options[:ip] = i
+  end
+
+  opts.on("--cidr [CIDR]", "CIDR") do |c|
+    options[:cidr] = c
+  end
+
+  opts.on("--gateway [GATEWAY]", "Gateway") do |g|
+    options[:gateway] = g
+  end
+
+  opts.on("--ip6 [IPv6]", "IPv6") do |i6|
+    options[:ip6] = i6
+  end
+
+  opts.on("--cidr6 [CIDR]", "CIDR v6") do |c6|
+    options[:cidr6] = c6
+  end
+
+  opts.on("--gateway6 [GATEWAY]", "Gateway v6") do |g6|
+    options[:gateway6] = g6
+  end
+
+  opts.on("--dns [DNS SERVER]", "DNS server") do |dn|
+    options[:dns] = dn
+  end
+
+  opts.on("--puppet [PUPPET SERVER]", "Puppet server") do |p|
+    options[:puppet] = p
+  end
+
+end.parse!
+
+#options[:pass] = ([*('A'..'Z'),*('0'..'9')]-%w(0 1 I O)).sample(8).join
+options[:pass] = "changeme"
+
+macs = Array.new
+
+conn = Libvirt::open("lxc:///")
+
+# Domaines actifs
+conn.list_domains.each do |domid|
+  dom = conn.lookup_domain_by_id(domid)
+  dom.xml_desc.each_line do |line|
+    next if not line.match(/^( )*\<mac address/)
+    macs << line.gsub(/^( )*\<mac address=\'(.+)\'\/\>/,'\2')[0...-1]
+  end
+end
+
+# Domaines inactifs
+conn.list_defined_domains.each do |domname|
+  dom = conn.lookup_domain_by_name(domname)
+  dom.xml_desc.each_line do |line|
+    next if not line.match(/^( )*\<mac address/)
+    macs << line.gsub(/^( )*\<mac address=\'(.+)\'\/\>/,'\2')[0...-1]
+  end
+end
+
+begin
+  mac = "52:54:00:00:"+(1..2).map{"%0.2X"%rand(256)}.join(":")
+end while macs.include?(mac)
+
+begin
+  mac6 = "52:54:00:01:"+(1..2).map{"%0.2X"%rand(256)}.join(":")
+end while macs.include?(mac)
+
+
+if not File.exist?("/srv/wheezy.tar") then
+  system("debootstrap --verbose --variant=minbase --include ifupdown,iputils-ping,locales,libui-dialog-perl,dialog,dhcpcd,netbase,net-tools,iproute,openssl,openssh-server,apt-utils,vim,emacs23-nox,ruby,wget,curl,aptitude,git --arch amd64 wheezy tmprootfs http://ftp.fr.debian.org/debian")
+  Dir.chdir("tmprootfs")
+  system("tar cvf wheezy.tar --exclude 'wheezy.tar' .")
+  Dir.chdir("..")
+  File.rename("tmprootfs/wheezy.tar","wheezy.tar")
+  FileUtils.rm_rf("tmprootfs")
+end
+
+
+Dir.chdir('/var/lib/lxc')
+if not File.exists?(options[:hostname])
+  FileUtils.mkdir_p("/var/lib/lxc/"+options[:hostname]+"/rootfs")
+  Dir.chdir("/var/lib/lxc/"+options[:hostname]+"/rootfs")
+  system("tar xvf /srv/wheezy.tar")
+end
+
+chroot = Process.fork do
+  Dir.chdir("/")
+  Dir.chroot("/var/lib/lxc/"+options[:hostname]+"/rootfs")
+  filename = "/etc/inittab"
+
+  outdata = File.read(filename).gsub(/^([2-6]:23)/, '#\1')
+  outdata = outdata.gsub(/^(p[fno])/, '#\1')
+  
+  File.open(filename, 'w') do |out|
+    out << outdata
+  end  
+  
+  filename = "/etc/locale.gen"
+  outdata = File.read(filename).gsub(/^(# en_US\.UTF-8)/, 'en_US.UTF-8')
+  
+  File.open(filename, 'w') do |out|
+    out << outdata
+  end  
+  
+  
+  system("/usr/sbin/locale-gen en_US.UTF-8")
+  
+  outdata = "#{options[:hostname]}.#{options[:domain]}\n"
+  File.open("/etc/hostname", 'w') do |out|
+    out << outdata
+  end
+
+  outdata = <<EOF
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+address #{options[:ip]}
+netmask #{options[:cidr]}
+gateway #{options[:gateway]}
+
+auto eth1
+iface eth1 inet6 manual
+  up ip -6 a a #{options[:ip6]}/#{options[:cidr6]} dev eth1
+  up ip -6 r a default via #{options[:gateway6]} dev eth1
+EOF
+  File.open("/etc/network/interfaces", 'w') do |out|
+    out << outdata
+  end
+  
+  
+  outdata = <<EOF
+nameserver #{options[:dns]}
+nameserver 8.8.8.8
+EOF
+  
+  File.open("/etc/resolv.conf", 'w') do |out|
+    out << outdata
+  end
+  
+
+  outdata = <<EOF
+127.0.0.1       localhost
+#{options[:ip]}             #{options[:hostname]} #{options[:hostname]}.#{options[:domain]}
+::1             localhost ip6-localhost ip6-loopback
+fe00::0         ip6-localnet
+ff00::0         ip6-mcastprefix
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+EOF
+  
+  File.open("/etc/hosts", 'w') do |out|
+    out << outdata
+  end
+
+  system("/usr/sbin/update-rc.d -f umountfs remove 2> /dev/null")
+  system("/usr/sbin/update-rc.d -f hwclock.sh remove 2> /dev/null")
+  system("/usr/sbin/update-rc.d -f hwclockfirst.sh remove 2> /dev/null")
+  
+  Dir.mkdir("/root/.ssh") if not File.directory?("/root/.ssh")
+  system("usermod -p $(echo #{options[:pass]} | openssl passwd -1 -stdin) root")
+  
+
+  outdata = <<EOF
+# puppetlabs
+deb  http://apt.puppetlabs.com wheezy main
+deb-src  http://apt.puppetlabs.com wheezy main 
+EOF
+  File.open("/etc/apt/sources.list.d/puppetlabs.list", 'w') do |out|
+    out << outdata
+  end
+  
+  outdata = <<EOF
+# puppetlabs-dep
+deb  http://apt.puppetlabs.com wheezy dependencies
+deb-src  http://apt.puppetlabs.com wheezy dependencies
+EOF
+  File.open("/etc/apt/sources.list.d/puppetlabs-dep.list", 'w') do |out|
+    out << outdata
+  end
+  
+  outdata = Net::HTTP.get('apt.puppetlabs.com', '/pubkey.gpg')
+  File.open("/tmp/pubkey.gpg", 'w') do |out|
+    out << outdata
+  end
+  system("apt-key add /tmp/pubkey.gpg")
+  system("apt-get update") if not File.file?("/etc/puppet/puppet.conf")
+  system("apt-get install -y puppet") if not File.file?("/etc/puppet/puppet.conf")
+
+  filename = "/etc/puppet/puppet.conf"
+  outdata = File.read(filename)
+  
+  outdata.gsub!(/\[master\]/, "server=#{options[:puppet]}\ncertname=#{options[:hostname]}.#{options[:domain]}\n[master]") if not outdata.include?("certname")
+  
+  File.open(filename, 'w') do |out|
+    out << outdata
+  end
+
+  outdata = <<EOF
+START=yes
+DAEMON_OPTS=""
+EOF
+  File.open("/etc/default/puppet", 'w') do |out|
+    out << outdata
+  end
+end
+
+Process.wait
+ram = `free`.split("\n")[1].split(" ")[1]
+outdata = <<EOF
+<domain type='lxc'>
+  <name>#{options[:hostname]}</name>
+  <memory unit='KiB'>#{ram}</memory>
+  <currentMemory unit='KiB'>#{ram}</currentMemory>
+  <vcpu placement='static'>8</vcpu>
+  <cputune>
+    <shares>921</shares>
+  </cputune>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='x86_64'>exe</type>
+    <init>/sbin/init</init>
+  </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/opt/libvirt/lib/x86_64-linux-gnu/libvirt_lxc</emulator>
+    <filesystem type='mount' accessmode='passthrough'>
+      <source dir='/var/lib/lxc/#{options[:hostname]}/rootfs'/>
+      <target dir='/'/>
+    </filesystem>
+
+    <interface type='bridge'>
+      <mac address='#{mac}'/>
+      <source bridge='br-int'/>
+      <virtualport type='openvswitch'>
+      </virtualport>
+    </interface>
+
+    <interface type='bridge'>
+      <mac address='#{mac6}'/>
+      <source bridge='br-ex'/>
+      <virtualport type='openvswitch'>
+      </virtualport>
+    </interface>
+
+    <console type='pty'>
+    </console>
+  </devices>
+</domain>
+EOF
+
+filename = "/var/lib/lxc/#{options[:hostname]}/config.xml"
+File.open(filename, 'w') do |out|
+  out << outdata
+end
+
+conn = Libvirt::open("lxc:///")
+conn.define_domain_xml(outdata) if not conn.list_defined_domains.include?(options[:hostname])
+
+

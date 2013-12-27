@@ -92,12 +92,39 @@ class tsacha_containers::lxc {
      require => Service['libvirt']
    }
 
-   file { "/srv/generate_container.sh":
+   package { 'ruby-dev':
+     ensure => installed
+   }
+
+   package { 'libvirt-dev':
+     ensure => installed
+   }
+
+   exec { 'ruby-libvirt':
+     command => 'gem install --no-rdoc --no-ri ruby-libvirt -- --with-opt-dir=/opt/libvirt/ --with-opt-include=/opt/libvirt/include/ --with-opt-lib=/opt/libvirt/lib/ --with-libvirt-include=/opt/libvirt/include/ --with-libvirt-lib=/opt/libvirt/lib/',
+     require => [Package['ruby-dev'],Package['libvirt-dev'],Service['libvirt']],
+     unless => "gem list ruby-libvirt | grep ruby-libvirt"
+   }
+
+   file { "/usr/sbin/libvirtd":
+     ensure => 'link',
+     target => '/opt/libvirt/sbin/libvirtd',
+     require => Service['libvirt']
+   }
+
+   package { 'archive-tar-minitar':
+     ensure => installed,
+     provider => gem,
+     require => [Package['ruby-dev']]
+   }
+
+
+   file { "/srv/generate_container.rb":
      owner   => root,
      group   => root,
      mode    => 755,
      ensure  => present,
-     content => template('tsacha_containers/generate_container.sh.erb')
+     content => template('tsacha_containers/generate_container.rb.erb')
    }
 
 }
