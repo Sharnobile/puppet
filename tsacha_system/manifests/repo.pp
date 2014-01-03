@@ -48,13 +48,12 @@ class tsacha_system::repo {
     priority => 400
   }
 
-  apt::force { "puppet":
-     release => "wheezy",
-     require => Apt::Source["puppetlabs"],
-  }
-
   apt::key { 'puppetlabs':
     key        => '4BD6EC30',
     key_source => 'http://apt.puppetlabs.com/pubkey.gpg',
+  }
+
+  package { 'puppet':
+    ensure => installed
   }
 }  

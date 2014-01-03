@@ -62,15 +62,6 @@ class tsacha_containers::network {
      command => "sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf",
      onlyif => "grep '#net.ipv4.ip_forward=1' /etc/sysctl.conf"
    }
-
-   # Compute node will use controller node to resolv dns
-   file { "/etc/resolv.conf":
-     owner   => root,
-     group   => root,
-     mode    => 644,
-     ensure  => present,
-     content => template('tsacha_containers/resolv.conf.erb'),
-   }  
    
    # Postrouting, masquerade
    file { "/etc/iptables.up.rules":

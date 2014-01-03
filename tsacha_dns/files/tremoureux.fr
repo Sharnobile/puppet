@@ -1,0 +1,59 @@
+$TTL 180
+tremoureux.fr.       IN SOA    tremoureux.fr. bergen.s.tremoureux.fr. (
+                         2014010201 ; serial
+                         86400      ; refresh (1 day)
+                         3600       ; retry (1 hour)
+                         3600000    ; expire (5 weeks 6 days 16 hours)
+                         300        ; minimum (5 minutes)
+                     )
+
+                     NS                     ns.tremoureux.fr.
+                     NS                     ns2.tremoureux.fr.
+
+                     A                      87.98.218.210
+                     AAAA                   2001:41d0:1:49d2::1
+
+                     IN TXT                 "v=spf1 ip4:87.98.218.210 ip4:91.121.61.39 ip6:2001:41d0:1:49d2::/64 -all"
+                     MX             1       mail.bergen.s.tremoureux.fr.
+
+www                  A                      87.98.218.210
+                     AAAA                   2001:41d0:1:49d2:1::3
+
+im                   A                      91.121.61.39
+                     AAAA                   2001:41d0:1:49d2:1::4
+
+mail                 A                      91.121.61.39
+                     AAAA                   2001:41d0:1:49d2:1::4
+
+ns                   A                      195.154.64.154
+                     AAAA                   2a01:4f8:151:7307:1::2
+
+ns2                  A                      87.98.218.210
+                     AAAA                   2001:41d0:1:49d2:1::2
+
+s                    CNAME                  www
+preview.s            CNAME                  www
+norvege.s            CNAME                  www
+sacha                CNAME                  www
+autoconfig           CNAME                  www
+conference           CNAME                  im
+
+_jabber              SRV     5 0 5269       im.tremoureux.fr.
+_xmpp-client         SRV     5 0 5222       im.tremoureux.fr.
+_xmpp-server         SRV     5 0 5269       im.tremoureux.fr.
+
+$ORIGIN s.tremoureux.fr.
+bergen               A                      87.98.218.210
+                     AAAA                   2001:41d0:1:49d2::1
+mail.bergen          A                      91.121.61.39
+                     AAAA                   2001:41d0:1:49d2:1::4
+
+oslo                 A                      176.9.119.5
+oslo                 AAAA                   2a01:4f8:151:7307::2
+dns.oslo             AAAA                   2a01:4f8:151:7307:1::2
+
+tromso               A                      195.154.64.154
+tromso               AAAA                   2001:bc8:3350:100::1
+
+$TTL 60    ; 1 minute
+home                 CNAME                  neandre.dyndns.org.

@@ -116,6 +116,9 @@ chroot = Process.fork do
   
   filename = "/etc/locale.gen"
   outdata = File.read(filename).gsub(/^(# en_US\.UTF-8)/, 'en_US.UTF-8')
+  outdata = outdata.gsub(/^(# en_US\.ISO-8859-15)/, 'en_US.ISO-8859-15')
+  outdata = outdata.gsub(/^(# fr_FR\.UTF-8)/, 'fr_FR.UTF-8')
+  outdata = outdata.gsub(/^(# fr_FR@euro)/, 'fr_FR@euro')
   
   File.open(filename, 'w') do |out|
     out << outdata
