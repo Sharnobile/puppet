@@ -18,4 +18,9 @@ mkdir /sys/fs/cgroup/$cgroup
 mount -t cgroup -o $cgroup,noatime cgroup /sys/fs/cgroup/$cgroup
 done
 
+
+# bridges cleanup
+ovs-vsctl list-ports br-ex | grep vnet | xargs ovs-vsctl del-port br-ex
+ovs-vsctl list-ports br-int | grep vnet | xargs ovs-vsctl del-port br-int
+
 exit 0

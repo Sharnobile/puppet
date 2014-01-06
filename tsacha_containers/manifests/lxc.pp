@@ -31,7 +31,7 @@ class tsacha_containers::lxc {
      unless => "mount | grep cgroup",
    }
 
-   file { "/tmp/libvirt_1.1.4_amd64.deb":
+   file { "/opt/libvirt_1.1.4_amd64.deb":
      owner   => root,
      group   => root,
      mode    => 600,
@@ -40,9 +40,9 @@ class tsacha_containers::lxc {
    }
   
    package { "libvirt":
-     require => [File["/tmp/libvirt_1.1.4_amd64.deb"],Package["dnsmasq"]],
+     require => [File["/opt/libvirt_1.1.4_amd64.deb"],Package["dnsmasq"]],
      ensure => installed,
-     source => "/tmp/libvirt_1.1.4_amd64.deb",
+     source => "/opt/libvirt_1.1.4_amd64.deb",
      provider => dpkg,
    }
 
