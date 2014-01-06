@@ -32,7 +32,7 @@ class tsacha_dns::tremoureux {
     } ~>
 
     exec { "sign-zone":
-      command => "dnssec-signzone -e20160106150000 -p -t -g -k tremoureux.fr.ksk.key -o tremoureux.fr db.tremoureux.fr tremoureux.fr.zsk.key",
+      command => "dnssec-signzone -e $(date -d '+2 years' '+%Y%m%d130000') -p -t -g -k tremoureux.fr.ksk.key -o tremoureux.fr db.tremoureux.fr tremoureux.fr.zsk.key",
       cwd => "/var/lib/named/etc/bind",
       unless => "test $(cat db.tremoureux.fr.signed | grep -A1 'IN SOA' | tail -n 1 | awk '{print \$1}') -eq $(cat db.tremoureux.fr | grep -A1 'IN SOA' | tail -n 1 | awk '{print \$1}')",
       require => File["/var/lib/named/etc/bind/db.tremoureux.fr"]
