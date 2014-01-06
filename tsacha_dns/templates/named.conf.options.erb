@@ -2,6 +2,7 @@ options {
 	directory "/var/cache/bind";
 	pid-file "/var/run/bind/named.pid";
 	dnssec-validation auto;
+	dnssec-enable yes;
 	auth-nxdomain no;
 	listen-on-v6 { any; };
 	listen-on { any; };

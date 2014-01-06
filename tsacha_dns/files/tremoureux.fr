@@ -1,6 +1,6 @@
 $TTL 180
 tremoureux.fr.       IN SOA    tremoureux.fr. bergen.s.tremoureux.fr. (
-                         2014010201 ; serial
+                         2014010603 ; serial
                          86400      ; refresh (1 day)
                          3600       ; retry (1 hour)
                          3600000    ; expire (5 weeks 6 days 16 hours)
@@ -57,3 +57,7 @@ tromso               AAAA                   2001:bc8:3350:100::1
 
 $TTL 60    ; 1 minute
 home                 CNAME                  neandre.dyndns.org.
+
+
+$include /var/lib/named/etc/bind/tremoureux.fr.zsk.key
+$include /var/lib/named/etc/bind/tremoureux.fr.ksk.key
